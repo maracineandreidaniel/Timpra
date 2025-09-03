@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Timpra.DataAccess.Entities
+﻿namespace Timpra.DataAccess.Entities
 {
     public class Login
     {
