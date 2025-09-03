@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
 
 namespace Timpra.API.Middleware
 {

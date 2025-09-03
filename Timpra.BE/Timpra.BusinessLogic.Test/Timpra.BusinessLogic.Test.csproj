@@ -26,5 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Timpra.BusinessLogic\Timpra.BusinessLogic.csproj" />
+    <ProjectReference Include="..\Timpra.DataAccess\Timpra.DataAccess.csproj" />
   </ItemGroup>
 </Project>
