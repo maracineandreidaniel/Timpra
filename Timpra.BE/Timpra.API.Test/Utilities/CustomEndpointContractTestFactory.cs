@@ -13,6 +13,7 @@ using Timpra.BusinessLogic.Services.Abstractions;
 using Timpra.DataAccess.Context;
 using Timpra.DataAccess.Entities;
 using NSubstitute;
+using System;
 
 namespace Timpra.API.Test.Utilities;
 
@@ -60,7 +61,7 @@ public class CustomEndpointContractTestFactory<TProgram> : WebApplicationFactory
             services.RemoveAll<IAuthenticateService>();
 
             var authServiceMock = Substitute.For<IAuthenticateService>();
-            authServiceMock.Login(Arg.Any<LoginDTO>()).Returns(new User { Id = 1, Username = "string", Password = "string", FullName = "string" });
+            authServiceMock.Login(Arg.Any<LoginDTO>()).Returns(new User { Id = Guid.NewGuid(), FirstName = "string", Password = "string", LastName = "string" });
 
             services.AddSingleton(_ => Substitute.For<AppDbContext>());
             services.AddSingleton(_ => Substitute.For<IOrderService>());
