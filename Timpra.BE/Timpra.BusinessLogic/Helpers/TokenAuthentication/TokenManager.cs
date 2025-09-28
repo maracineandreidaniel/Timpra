@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using Timpra.DataAccess.Context;
 using Timpra.DataAccess.Entities;
@@ -15,100 +16,59 @@ public class TokenManager : ITokenManager
     private JwtSecurityTokenHandler tokenHandler;
     private byte[] secretKey = Encoding.ASCII.GetBytes("Timpra-Project-API777777777777777777777777777777777777777777777777777777");
     protected readonly AppDbContext _context;
-    private static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-    private static readonly int SaltSize = 16;
-    private static readonly int HashSize = 20;
-    private static readonly int Iterations = 10000;
 
     public TokenManager(AppDbContext context)
     {
         tokenHandler = new JwtSecurityTokenHandler();
         _context = context;
     }
-    public User? Authenticate(string username, string password)
-    {
-        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-        {
-            var user = _context.Users.Where(b => b.UserName == username && b.Password == password).FirstOrDefault();
-
-            return user;
-
-        }
-        return null;
-    }
 
     public string NewToken(User user)
     {
         // TODO: add claims here (full user name & others if needed)
-        var tokenDescriptor = new SecurityTokenDescriptor()
+        var jwtTokenHandler = new JwtSecurityTokenHandler();
+        var identity = new ClaimsIdentity(new Claim[]
         {
-            Subject = new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}") }),
+                new Claim(ClaimTypes.Role, user.Role.Name),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.NameIdentifier, $"{user.Id}")
+        });
+
+        var credentials = new SigningCredentials(new SymmetricSecurityKey(secretKey), SecurityAlgorithms.HmacSha256);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = identity,
             Expires = DateTime.Now.AddHours(1),
-            SigningCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(secretKey),
-                SecurityAlgorithms.HmacSha256Signature
-                )
+            SigningCredentials = credentials
         };
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+        return jwtTokenHandler.WriteToken(token);
+    }
 
-        var jwtString = tokenHandler.WriteToken(token);
-
-        return jwtString;
+    public string NewToken()
+    {
+        var tokenBytes = RandomNumberGenerator.GetBytes(64);
+        var refreshToken = Convert.ToBase64String(tokenBytes);
+        return refreshToken;
     }
 
     public ClaimsPrincipal VerifyToken(string tokenValue)
     {
-        var claims = tokenHandler.ValidateToken(tokenValue,
-            new TokenValidationParameters()
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-                ValidateLifetime = true,
-                ValidateAudience = false,
-                ValidateIssuer = false,
-                ClockSkew = TimeSpan.Zero
-            },
-            out SecurityToken validateToken
-            );
-        return claims;
-    }
-
-    public static string HashPassword(string password)
-    {
-        byte[] salt;
-        rng.GetBytes(salt = new byte[SaltSize]);
-        var key = new Rfc2898DeriveBytes(password, salt, Iterations);
-        var hash = key.GetBytes(HashSize);
-
-        var hashBytes = new byte[SaltSize + HashSize];
-        Array.Copy(salt, 0, hashBytes, 0, SaltSize);
-        Array.Copy(hash, 0, hashBytes, SaltSize, HashSize);
-
-        var base64Hash = Convert.ToBase64String(hashBytes);
-        return base64Hash;
-    }
-
-    public static bool VerifyPassword(string password, string base64Hash)
-    {
-        var hashBytes = Convert.FromBase64String(base64Hash);
-
-        var salt = new byte[SaltSize];
-        Array.Copy(hashBytes, 0, salt, 0, SaltSize);
-
-        var key = new Rfc2898DeriveBytes(password, salt, Iterations);
-        byte[] hash = key.GetBytes(HashSize);
-
-        for (var i = 0; i < HashSize; i++)
+        var tokenValidationParameters = new TokenValidationParameters
         {
-            if (hashBytes[i + SaltSize] != hash[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
-
+            ValidateAudience = false,
+            ValidateIssuer = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+            ValidateLifetime = false
+        };
+        var tokenHandler = new JwtSecurityTokenHandler();
+        SecurityToken securityToken;
+        var principal = tokenHandler.ValidateToken(tokenValue, tokenValidationParameters, out securityToken); //out -> passed by reference, it will be modified by the method
+        var jwtSecurityToken = securityToken as JwtSecurityToken;
+        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            throw new SecurityTokenException("This is invalid token");
+        return principal;
     }
-
 }

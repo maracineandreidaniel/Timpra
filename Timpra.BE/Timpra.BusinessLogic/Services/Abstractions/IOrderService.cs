@@ -12,10 +12,7 @@ namespace Timpra.BusinessLogic.Services.Abstractions
     {
         public Task<IEnumerable<OrderDto>> GetAll();
         public Task<OrderDto> AddAsync(OrderDto item, bool applyChanges = true);
-        public Task<OrderDto> UpdateAsync(OrderDto item, int id, bool applyChanges = true);
-        public Task<OrderDto> RemoveAsync(int orderId, bool applyChanges = true);
         public Task<OrderDto> GetByIdAsync(int id, bool applyChanges = true);
-        public Task<OrderDto> ArchiveAsync(int orderId, bool applyChanges = true);
         public Task<PaginatedListResponseDto<OrderDto>> GetOrdersPaginatedAsync(int pageIndex, int itemsNumber, string sortField, string? sortDirection, OrderListFilterDto filter, bool applyChanges = true);
     }
 }

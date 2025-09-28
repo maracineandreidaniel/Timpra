@@ -40,7 +40,7 @@ namespace Timpra.DataAccess.Repository
             return await _context.Set<TEntity>().FindAsync(id);
         }
 
-        public async Task UpdateAsync(TEntity updatedItem, int id, bool applyChanges = true)
+        public async Task UpdateAsync(TEntity updatedItem, Guid id, bool applyChanges = true)
         {
             var existingItem = await _context.Set<TEntity>().FindAsync(id);
 

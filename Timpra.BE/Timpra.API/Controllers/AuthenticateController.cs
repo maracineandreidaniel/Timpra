@@ -35,7 +35,8 @@ namespace Timpra.API.Controllers
             var user = await _authenticateService.Login(loginModel);
             if (user != null)
             {
-                return Ok(new LoginResponseDTO { Token = _tokenManager.NewToken(user), FullName = $"{user.FirstName} {user.LastName}", Id = user.Id });
+                //return Ok(new LoginResponseDTO { Token = _tokenManager.NewToken(user), FullName = $"{user.FirstName} {user.LastName}", Id = user.Id });
+                return Ok(user);
             }
             else
             {
