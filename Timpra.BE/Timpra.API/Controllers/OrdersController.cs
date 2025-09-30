@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Timpra.BusinessLogic.DTOs.Orders;
-using System.Collections.Generic;
-using Timpra.BusinessLogic.Services.Abstractions;
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using Timpra.BusinessLogic.DTOs;
-using Timpra.API.Filters;
+﻿using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Timpra.API.Filters;
+using Timpra.BusinessLogic.DTOs;
+using Timpra.BusinessLogic.DTOs.Orders;
+using Timpra.BusinessLogic.Services.Abstractions;
 
 namespace Timpra.API.Controllers
 {
@@ -46,47 +45,47 @@ namespace Timpra.API.Controllers
             return Created(nameof(GetById), order); ;
         }
 
-        //[HttpPut("{id}")]
-        //[ProducesResponseType((int)HttpStatusCode.OK)]
-        //[ProducesResponseType(typeof(OrderDto), (int)HttpStatusCode.BadRequest)]
-        //public async Task<IActionResult> Update([FromRoute] int id, [FromBody] OrderDto newOrder)
-        //{
-        //    if (id != newOrder.Id)
-        //    {
-        //        return BadRequest("Invalid request");
-        //    }
+        [HttpPut("{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(OrderDto), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] OrderDto newOrder)
+        {
+            if (id != newOrder.Id)
+            {
+                return BadRequest("Invalid request");
+            }
 
-        //    var order = await _orderService.UpdateAsync(newOrder, id);
-        //    return Ok(order);
-        //}
+            var order = await _orderService.UpdateAsync(newOrder, id);
+            return Ok(order);
+        }
 
-        //[HttpDelete("{orderId}")]
-        //[ProducesResponseType((int)HttpStatusCode.NoContent)]
-        //[ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        //public async Task<IActionResult> Delete(int orderId)
-        //{
-        //    var dbOrder = await _orderService.RemoveAsync(orderId);
-        //    if (dbOrder != null)
-        //    {
-        //        return NoContent();
-        //    }
+        [HttpDelete("{orderId}")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> Delete(int orderId)
+        {
+            var dbOrder = await _orderService.RemoveAsync(orderId);
+            if (dbOrder != null)
+            {
+                return NoContent();
+            }
 
-        //    return BadRequest("Something went wrong...");
-        //}
+            return BadRequest("Something went wrong...");
+        }
 
-        //[HttpPatch]
-        //[ProducesResponseType((int)HttpStatusCode.NoContent)]
-        //[ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        //public async Task<IActionResult> Archive([FromBody] OrderDto order)
-        //{
-        //    var dbOrder = await _orderService.ArchiveAsync(order.Id);
-        //    if (dbOrder != null)
-        //    {
-        //        return NoContent();
-        //    }
+        [HttpPatch]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> Archive([FromBody] OrderDto order)
+        {
+            var dbOrder = await _orderService.ArchiveAsync(order.Id);
+            if (dbOrder != null)
+            {
+                return NoContent();
+            }
 
-        //    return BadRequest("Something went wrong...");
-        //}
+            return BadRequest("Something went wrong...");
+        }
 
         [Route("paginated")]
         [HttpPost]

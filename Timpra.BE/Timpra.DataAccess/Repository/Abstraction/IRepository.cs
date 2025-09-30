@@ -10,6 +10,7 @@ namespace Timpra.DataAccess.Repository.Abstraction
     {
         Task AddAsync(TEntity item, bool applyChanges = true);
         Task UpdateAsync(TEntity item, Guid id, bool applyChanges = true);
+        Task UpdateAsync(TEntity item, int id, bool applyChanges = true);
         Task RemoveAsync(TEntity item, bool applyChanges = true);
         Task RemoveRangeAsync(IEnumerable<TEntity> items, bool applyChanges = true);
         Task<IQueryable<TEntity>> GetAll();

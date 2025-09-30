@@ -40,6 +40,42 @@ namespace Timpra.BusinessLogic.Services
             return order.MapToDto();
         }
 
+        public async Task<OrderDto> UpdateAsync(OrderDto item, int id, bool applyChanges = true)
+        {
+            var order = item.MapFromDto();
+            await _orderRepository.UpdateAsync(order, id);
+
+            return item;
+        }
+
+        public async Task<OrderDto> RemoveAsync(int orderId, bool applyChanges = true)
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId);
+            if (order != null)
+            {
+                order.IsDeleted = true;
+                await _orderRepository.UpdateAsync(order, orderId);
+
+                return order.MapToDto();
+            }
+
+            return null;
+        }
+
+        public async Task<OrderDto> ArchiveAsync(int orderId, bool applyChanges = true)
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId);
+            if (order != null)
+            {
+                order.IsActive = false;
+                await _orderRepository.UpdateAsync(order, orderId);
+
+                return order.MapToDto();
+            }
+
+            return null;
+        }
+
         public async Task<PaginatedListResponseDto<OrderDto>> GetOrdersPaginatedAsync(int pageIndex, int itemsNumber,
             string sortField, string sortDirection, OrderListFilterDto filter, bool applyChanges = true)
         {

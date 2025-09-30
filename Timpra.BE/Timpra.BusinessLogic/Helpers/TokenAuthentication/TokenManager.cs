@@ -1,11 +1,9 @@
 ﻿
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using Timpra.DataAccess.Context;
 using Timpra.DataAccess.Entities;
@@ -13,13 +11,11 @@ using Timpra.DataAccess.Entities;
 namespace Timpra.BusinessLogic.Helpers.TokenAuthentication;
 public class TokenManager : ITokenManager
 {
-    private JwtSecurityTokenHandler tokenHandler;
     private byte[] secretKey = Encoding.ASCII.GetBytes("Timpra-Project-API777777777777777777777777777777777777777777777777777777");
     protected readonly AppDbContext _context;
 
     public TokenManager(AppDbContext context)
     {
-        tokenHandler = new JwtSecurityTokenHandler();
         _context = context;
     }
 

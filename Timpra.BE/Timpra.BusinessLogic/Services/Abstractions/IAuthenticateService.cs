@@ -9,5 +9,6 @@ namespace Timpra.BusinessLogic.Services.Abstractions
     {
         public Task<TokenDTO> Login(LoginDTO loginModel);
         public Task<UserDTO> Register(UserDTO item, bool applyChanges = true);
+        public Task<TokenDTO> Refresh(TokenDTO tokenApiDto);
     }
 }

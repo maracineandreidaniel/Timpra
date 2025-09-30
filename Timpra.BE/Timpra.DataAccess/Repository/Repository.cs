@@ -51,6 +51,17 @@ namespace Timpra.DataAccess.Repository
             }
         }
 
+        public async Task UpdateAsync(TEntity updatedItem, int id, bool applyChanges = true)
+        {
+            var existingItem = await _context.Set<TEntity>().FindAsync(id);
+
+            if (existingItem != null && applyChanges)
+            {
+                _context.Entry(existingItem).CurrentValues.SetValues(updatedItem);
+                await SaveChangesAsync();
+            }
+        }
+
         public async Task RemoveAsync(TEntity item, bool applyChanges = true)
         {
             _context.Set<TEntity>().Remove(item);

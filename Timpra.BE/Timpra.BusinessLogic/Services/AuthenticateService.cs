@@ -208,7 +208,7 @@ namespace Timpra.BusinessLogic.Services
             }
 
             var usersQuerayble = await _userRepository.GetAll();
-            var usersList = await usersQuerayble.ToListAsync();
+            var usersList = await usersQuerayble.Include(t => t.Role).ToListAsync();
 
             string AccessToken = tokenApiDto.AccessToken;
             string RefreshToken = tokenApiDto.RefreshToken;

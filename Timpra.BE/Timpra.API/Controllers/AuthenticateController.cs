@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Timpra.BusinessLogic.DTOs;
 using Timpra.BusinessLogic.DTOs.Orders;
+using Timpra.BusinessLogic.Exceptions;
 using Timpra.BusinessLogic.Helpers.TokenAuthentication;
 using Timpra.BusinessLogic.Services.Abstractions;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace Timpra.API.Controllers
 {
@@ -32,11 +33,10 @@ namespace Timpra.API.Controllers
                 return BadRequest("Invalid request.");
             }
 
-            var user = await _authenticateService.Login(loginModel);
-            if (user != null)
+            var result = await _authenticateService.Login(loginModel);
+            if (result != null)
             {
-                //return Ok(new LoginResponseDTO { Token = _tokenManager.NewToken(user), FullName = $"{user.FirstName} {user.LastName}", Id = user.Id });
-                return Ok(user);
+                return Ok(result);
             }
             else
             {
@@ -46,10 +46,36 @@ namespace Timpra.API.Controllers
 
         [HttpPost("register")]
         [ProducesResponseType(typeof(UserDTO), (int)HttpStatusCode.Created)]
+        [ProducesResponseType((int)HttpStatusCode.NotImplemented)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<ActionResult> Post([FromBody] UserDTO newUser)
         {
             var result = await _authenticateService.Register(newUser);
             return Ok(result);
+        }
+
+        [HttpPost("refresh")]
+        [ProducesResponseType(typeof(TokenDTO), (int)HttpStatusCode.Created)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> Refresh([FromBody] TokenDTO tokenApiDto)
+        {
+            try
+            {
+                var result = await _authenticateService.Refresh(tokenApiDto);
+                return Ok(result);
+            }
+            catch (NotFoundException ex)
+            {
+                return StatusCode(404, ex.Message);
+            }
+            catch (InvalidRequestException ex)
+            {
+                return StatusCode(404, ex.Message);
+            }
+            catch
+            {
+                return StatusCode(500, new { Message = "An unexpected error occurred." });
+            }
         }
     }
 }
