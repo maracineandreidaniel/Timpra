@@ -111,7 +111,6 @@ namespace Timpra.BusinessLogic.Services
             return usersList.Any(x => x.UserName == userName);
         }
 
-
         public async Task<bool> CheckEmailExistAsync(string email)
         {
             var usersQuerayble = await _userRepository.GetAll();
