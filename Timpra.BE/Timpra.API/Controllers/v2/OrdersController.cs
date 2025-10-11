@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using Timpra.API.Filters;
 using Timpra.BusinessLogic.DTOs;
 using Timpra.BusinessLogic.DTOs.Orders;
 using Timpra.BusinessLogic.Services.Abstractions;
 
-namespace Timpra.API.Controllers
+namespace Timpra.API.Controllers.v2
 {
-    [Route("[controller]")]
     [ApiController]
     [TokenAuthenticationFilter]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
