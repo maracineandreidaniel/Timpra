@@ -8,22 +8,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Timpra.BusinessLogic.Mappers;
+using System;
+using Microsoft.AspNetCore.Http;
 
 namespace Timpra.BusinessLogic.Services
 {
     public class OrderService : IOrderService
     {
         private readonly IRepository<Order> _orderRepository;
+        private readonly RedisCacheService _redisCacheService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public OrderService(IRepository<Order> orderRepository)
+        public OrderService(IRepository<Order> orderRepository, RedisCacheService redisCacheService, IHttpContextAccessor httpContextAccessor)
         {
             _orderRepository = orderRepository;
+            _redisCacheService = redisCacheService;
+            _httpContextAccessor = httpContextAccessor;
+
         }
 
         public async Task<IEnumerable<OrderDto>> GetAll()
         {
-            var orders = await _orderRepository.GetAll();
-            return orders.Where(order => !order.IsDeleted).ProjectToDto();
+            var instanceId = GetInstanceId();
+            var cacheKey = $"Orders_Cache_{instanceId}";
+
+            var orders = _redisCacheService.GetCachedData<List<Order>>(cacheKey);
+            if(orders is null)
+            {
+                var query = await _orderRepository.GetAll();
+                orders = query.Where(order => !order.IsDeleted).ToList();
+                _redisCacheService.SetCachedData(cacheKey, orders, TimeSpan.FromMinutes(3));
+            }
+
+            //TODO: Make the mapping for the lists (AutoMapper?)
+            //return orders.ProjectToDto();
+            return null;
+        }
+
+        public string GetInstanceId()
+        {
+            _httpContextAccessor.HttpContext.Session.TryGetValue("InstanceId", out var instanceId);
+            if (instanceId is null)
+            {
+                instanceId = Guid.NewGuid().ToByteArray();
+               _httpContextAccessor.HttpContext.Session.Set("InstanceId", instanceId); 
+
+            }
+
+            return Convert.ToBase64String(instanceId);
         }
 
         public async Task<OrderDto> GetByIdAsync(int id, bool applyChanges = true)

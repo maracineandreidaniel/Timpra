@@ -21,6 +21,18 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(3);
+        });
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("RedisConn");
+            options.InstanceName = "OrdersCatalog_";
+        });
+
         // Add services to the container.
         builder.Services.AddTransient<ITokenManager, TokenManager>();
 
@@ -60,6 +72,7 @@ public class Program
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IAuthenticateService, AuthenticateService>();
         builder.Services.AddScoped<IOrderService, OrderService>();
+        builder.Services.AddScoped<RedisCacheService>();
 
         builder.Services.AddSwaggerGen(options =>
         {
@@ -94,6 +107,8 @@ public class Program
         app.UseOptions();
 
         app.UseCors("AllowAny");
+
+        app.UseSession();
 
         // Configure the HTTP request pipeline.
         if (builder.Environment.IsDevelopment() || builder.Environment.IsProduction())
