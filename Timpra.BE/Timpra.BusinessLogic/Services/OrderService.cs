@@ -29,20 +29,26 @@ namespace Timpra.BusinessLogic.Services
 
         public async Task<IEnumerable<OrderDto>> GetAll()
         {
+            var orders = await this.GetAllOrders();
+            return orders.ToList();
+        }
+
+        public async Task<IEnumerable<OrderDto>> GetAllOrders()
+        {
             var instanceId = GetInstanceId();
             var cacheKey = $"Orders_Cache_{instanceId}";
 
             var orders = _redisCacheService.GetCachedData<List<Order>>(cacheKey);
-            if(orders is null)
+            if (orders is null)
             {
                 var query = await _orderRepository.GetAll();
-                orders = query.Where(order => !order.IsDeleted).ToList();
+                orders = query
+                    .Where(o => !o.IsDeleted)
+                    .ToList();
                 _redisCacheService.SetCachedData(cacheKey, orders, TimeSpan.FromMinutes(3));
             }
 
-            //TODO: Make the mapping for the lists (AutoMapper?)
-            //return orders.ProjectToDto();
-            return null;
+            return orders.MapToDto();
         }
 
         public string GetInstanceId()
@@ -69,6 +75,10 @@ namespace Timpra.BusinessLogic.Services
             var order = item.MapFromDto();
             await _orderRepository.AddAsync(order);
 
+            var instanceId = GetInstanceId();
+            var cacheKey = $"Orders_Cache_{instanceId}";
+            _redisCacheService.RemoveCache(cacheKey);
+
             return order.MapToDto();
         }
 
@@ -76,6 +86,10 @@ namespace Timpra.BusinessLogic.Services
         {
             var order = item.MapFromDto();
             await _orderRepository.UpdateAsync(order, id);
+
+            var instanceId = GetInstanceId();
+            var cacheKey = $"Orders_Cache_{instanceId}";
+            _redisCacheService.RemoveCache(cacheKey);
 
             return item;
         }
@@ -87,6 +101,10 @@ namespace Timpra.BusinessLogic.Services
             {
                 order.IsDeleted = true;
                 await _orderRepository.UpdateAsync(order, orderId);
+
+                var instanceId = GetInstanceId();
+                var cacheKey = $"Orders_Cache_{instanceId}";
+                _redisCacheService.RemoveCache(cacheKey);
 
                 return order.MapToDto();
             }
@@ -101,6 +119,10 @@ namespace Timpra.BusinessLogic.Services
             {
                 order.IsActive = false;
                 await _orderRepository.UpdateAsync(order, orderId);
+
+                var instanceId = GetInstanceId();
+                var cacheKey = $"Orders_Cache_{instanceId}";
+                _redisCacheService.RemoveCache(cacheKey);
 
                 return order.MapToDto();
             }
@@ -128,18 +150,8 @@ namespace Timpra.BusinessLogic.Services
                 .OrderByDynamic(sortField, sortDirection)
                 .Skip(pageIndex * itemsNumber)
                 .Take(itemsNumber)
-                .Select(o => new OrderDto()
-                {
-                    Id = o.Id,
-                    Number = o.Number,
-                    Client = o.Client,
-                    Capacity = o.Capacity,
-                    Value = o.Value,
-                    DeliveryDate = o.DeliveryDate,
-                    IsActive = o.IsActive,
-                    IsDeleted = o.IsDeleted
-                })
-                .ToList();
+                .ToList()
+                .MapToDto();
 
             return new PaginatedListResponseDto<OrderDto> { RowsCount = itemsCount, Data = items };
         }
