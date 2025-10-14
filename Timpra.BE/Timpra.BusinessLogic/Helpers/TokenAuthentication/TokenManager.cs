@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Timpra.DataAccess.Context;
 using Timpra.DataAccess.Entities;
@@ -11,12 +12,19 @@ using Timpra.DataAccess.Entities;
 namespace Timpra.BusinessLogic.Helpers.TokenAuthentication;
 public class TokenManager : ITokenManager
 {
-    private byte[] secretKey = Encoding.ASCII.GetBytes("Timpra-Project-API777777777777777777777777777777777777777777777777777777");
+    
     protected readonly AppDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public TokenManager(AppDbContext context)
+    public TokenManager(AppDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
+    }
+
+    public byte[] GetSecretKey()
+    {
+        return Encoding.ASCII.GetBytes(_configuration.GetConnectionString("SigningSecretKey"));
     }
 
     public string NewToken(User user)
@@ -30,7 +38,7 @@ public class TokenManager : ITokenManager
                 new Claim(ClaimTypes.NameIdentifier, $"{user.Id}")
         });
 
-        var credentials = new SigningCredentials(new SymmetricSecurityKey(secretKey), SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials(new SymmetricSecurityKey(GetSecretKey()), SecurityAlgorithms.HmacSha256);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = identity,
@@ -56,7 +64,7 @@ public class TokenManager : ITokenManager
             ValidateAudience = false,
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+            IssuerSigningKey = new SymmetricSecurityKey(GetSecretKey()),
             ValidateLifetime = false
         };
         var tokenHandler = new JwtSecurityTokenHandler();

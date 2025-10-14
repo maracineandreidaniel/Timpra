@@ -65,7 +65,7 @@ public class Program
         builder.Services.AddCustomSwagger();
 
         builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("TimpraContext")));
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
